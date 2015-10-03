@@ -19,6 +19,8 @@ render rnder = new render();
 menuItem[] mItem = new menuItem[20];
 int menuItemCount;
 
+// Keymapping vector. 0 = Windows, 1 = Mac, 2 = Linix 
+final int COMPUTER_TYPE = 0;
 
 final int LEDCnt = 120;
 StringList slLSEffect;  // light string effect in list string format
@@ -84,8 +86,6 @@ void draw()
 }
 
 
-
-
 void drawWaveForm()
 {
   // draw the waveforms
@@ -114,13 +114,9 @@ void drawWaveForm()
 
 
 void keyPressed() {
-  int k, kc = 0;
-  if(key == CODED) {
-    kc = keyCode;
-  }
-  k = key;
+  int k = keyToInt(keyCode, key);
   // time sync check
-  if(k != ' ') {
+  if(k >= 'a' && k <= 'z') {
     int tmCheck = player.position() - millis() - msAdjust;
     if(tmCheck < 0) tmCheck = -tmCheck;
     if(tmCheck > 25) println("time out of sync at " + millis() + " by " + tmCheck);
@@ -130,69 +126,56 @@ void keyPressed() {
 
 
 void keyReleased() {
-  char k;
-  if(key != CODED) {
-    k = key;
-    if(k >= 'a' && k <= 'z') {
-      // save key and time relative to start of song
-      k = char(byte(k) - 32); // capitalize
-      String effLine = nf(player.position(), 7) + ',' + k;
-      slLSEffect.append(effLine);  
-    }
+  int k = keyToInt(keyCode, key);
+  if(k >= 'a' && k <= 'z') {
+    // save key and time relative to start of song
+    k = char(byte(k) - 32); // capitalize
+    String effLine = nf(player.position(), 7) + ',' + k;
+    slLSEffect.append(effLine);  
   }
 }
 
 
+int keyToInt(int kc, int k) {
+  if(kc == k || (kc + 0x20) == k)
+    kc = k;
+  else {
+    kc <<= 16;
+    kc += k;
+  }
+  print("keyCode: " + hex(keyCode) + "  key: " + hex(key));
+  println("  combined: " + hex(kc));
+  return kc;
+}
+
+
 void processKeystroke(int kk) {
-  println("key: " + kk);
   switch(kk) {
-/*    
-  case 291:  // END
-    // save file and end program
-    println("END key");
+  // ESC will exit program without saving data (processing default)
+  case 0x00530013:  // ctrl-s: save
+    saveData();
+    break;
+  case 0x004C000C:  // ctrl-l: load
+    loadData();
+    break;
+  case 0x00030000:  // END: save file and end program
     saveData();
     exit();
     break;
-**    
-  case ESC:
-    // exit without saving new data
-    // ESC is hardwired to exit. No need to do anything.
-    break;
-**    
-  case 292:  // HOME
-    // start from beginning but continue recording keystrokes
-    println("HOME key");
-    player.rewind();
-    player.play();
-    break;
-  case 377:  // F10
-    println("F10 key");
-    saveData();
-    break;
-  case 127:  // DELETE
-    // abandon unsaved data
-    println("DELETE key");
-    abandonData();
-    break;
-*/
-  case 19:  // ctrl-s save
-    saveData();
-    break;
-  case 12:  // ctrl-l load
-    loadData();
-    break;
-  case 24:  // ctrl-x abandon data
+  case 0x00930000:  // DELETE: abandon data
     slLSEffect.clear();
     break;
-  case 1:  // ctrl-a play from beginning
+  case 0xD:  // ENTER: play from beginning
     player.rewind();
     player.play();
     break;
-  case 14:  // ctrl-n: increase window size
+  case 0x008B002B:  // '+': increase window size
+  case 0x003D002B:
     windowPercentSize += 10;
     if(windowPercentSize > 100) windowPercentSize = 100;
     break;
-  case 13:  // ctrl-m: decrease window size
+  case 0x008C002D:  // '-': decrease window size
+  case 0x2D:
     windowPercentSize -= 10;
     if(windowPercentSize < 20) windowPercentSize = 20;
     break;
@@ -203,6 +186,7 @@ void processKeystroke(int kk) {
     break;
   }
   if(kk >= 'a' && kk <= 'z') {
+    println("effect key");
     // create a generic effect to display for keystroke
     // locationStart, spread, hueStart, hueEnd, hueDirection, timeStart, duration, timeBuild
     ef = new effect(10, 8, 180, 180, 1, player.position(), 300, 0);
@@ -261,7 +245,7 @@ void setupMenuItems() {
   yOffset = textHeight + textHeight / 3;
   yPosText = YPosMenu + textHeight * 2;
   yPos = yPosText; 
-  mItem[menuItemCount] = new menuItem("space: pause / playback", xPos, yPos);
+  mItem[menuItemCount] = new menuItem("SPACE: pause / playback", xPos, yPos);
   menuItemCount++;
   yPos += yOffset;
   mItem[menuItemCount] = new menuItem("ctrl-l: load data", xPos, yPos);
@@ -270,23 +254,24 @@ void setupMenuItems() {
   mItem[menuItemCount] = new menuItem("ctrl-s: save data", xPos, yPos);
   menuItemCount++;
   yPos += yOffset;
-  mItem[menuItemCount] = new menuItem("ctrl-x: abandon unsaved data", xPos, yPos);
+  mItem[menuItemCount] = new menuItem("DELETE: abandon unsaved data", xPos, yPos);
   menuItemCount++;
   yPos += yOffset;
-  mItem[menuItemCount] = new menuItem("ctrl-a: start from beginning", xPos, yPos);
+  mItem[menuItemCount] = new menuItem("ENTER: start from beginning", xPos, yPos);
   menuItemCount++;
   yPos += yOffset;
   mItem[menuItemCount] = new menuItem("ESC: exit", xPos, yPos);
   menuItemCount++;
   xPos = width / 2 + 10;
   yPos = yPosText;
-  mItem[menuItemCount] = new menuItem("ctrl-n: decrease window size", xPos, yPos);
+  mItem[menuItemCount] = new menuItem("'-': decrease window size", xPos, yPos);
   menuItemCount++;
   yPos += yOffset;
-  mItem[menuItemCount] = new menuItem("ctrl-m: increase window size", xPos, yPos);
+  mItem[menuItemCount] = new menuItem("'+': increase window size", xPos, yPos);
   menuItemCount++;
   yPos += yOffset;
 }
+
 void drawMenus() {
   fill(255);
   for(int i = 0; i < menuItemCount; i++)
