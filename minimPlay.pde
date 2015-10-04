@@ -1,8 +1,8 @@
 /**
-  * This sketch demonstrates how to play a file with Minim using an AudioPlayer. <br />
+  * This sketch demonstrates how to play a file with Minim using an AudioPlayer.
   * It's also a good example of how to draw the waveform of the audio. Full documentation 
   * for AudioPlayer can be found at http://code.compartmental.net/minim/audioplayer_class_audioplayer.html
-  * <p>
+  * 
   * For more information about Minim and additional features, 
   * visit http://code.compartmental.net/minim/
   */
@@ -19,8 +19,15 @@ render rnder = new render();
 menuItem[] mItem = new menuItem[20];
 int menuItemCount;
 
-// Keymapping vector. 0 = Windows, 1 = Mac, 2 = Linix 
-final int COMPUTER_TYPE = 0;
+// Keymapping vector. 0 = Windows, 1 = Mac, 2 = Linux
+String system = toString(System.getProperty("os.name"));
+
+if (system.indexOf("Windows") != -1)
+  final int COMPUTER_TYPE = 0;
+else if (system.indexOf("Mac OS X") != -1)
+  final int COMPUTER_TYPE = 1;
+else
+  final int COMPUTER_TYPE = 2;
 
 final int LEDCnt = 120;
 StringList slLSEffect;  // light string effect in list string format
