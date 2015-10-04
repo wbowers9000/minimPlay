@@ -16,18 +16,12 @@ AudioPlayer player;
 Combineeffect ce = new Combineeffect();
 render rnder = new render();
 
-menuItem[] mItem = new menuItem[20];
-int menuItemCount;
-
-// Keymapping vector. 0 = Windows, 1 = Mac, 2 = Linux
-String system = toString(System.getProperty("os.name"));
-
-if (system.indexOf("Windows") != -1)
-  final int COMPUTER_TYPE = 0;
-else if (system.indexOf("Mac OS X") != -1)
-  final int COMPUTER_TYPE = 1;
-else
-  final int COMPUTER_TYPE = 2;
+color backgroundNormal;
+color backgroundHighlight;
+color fillNormal;
+color fillHighlight;
+color positionMarkerColor;
+color waveColor;
 
 final int LEDCnt = 120;
 StringList slLSEffect;  // light string effect in list string format
@@ -58,8 +52,18 @@ void setup()
   textFont(font);
   
   colorMode(HSB, 360, 100, 100);
-  stroke(255);
-  background(0);
+  // setup color preferences
+  backgroundNormal = color(0);
+  backgroundHighlight = color(46, 49, 46); // for drawing rectangles behind text not background()
+  fillNormal = color(255);
+  fillHighlight = color(179, 99, 99);
+  positionMarkerColor = color(180, 99, 99);
+  waveColor = color(272, 70, 99);
+
+  noStroke();
+  background(backgroundNormal);
+
+  setupMenu();
   
   slLSEffect = new StringList();
   minim = new Minim(this);  // to load files from data directory
@@ -82,14 +86,13 @@ void draw()
     YPosWave = 0;
     YPosMenu = YPosWave + areaOffset;
     YPosEffect = YPosMenu + areaOffset;
-    setupMenuItems();
+    rePositionMenu();
     rnder.displaySetup(LEDCnt);
   }
-  background(0);
-  stroke(270, 100, 100);
+  background(backgroundNormal);  // clear screen
   drawWaveForm();
   drawEffDisp();
-  drawMenus();
+  drawMenu();
 }
 
 
@@ -99,6 +102,9 @@ void drawWaveForm()
   // the values returned by left.get() and right.get() will be between -1 and 1,
   // so we need to scale them up to see the waveform
   // note that if the file is MONO, left.get() and right.get() will return the same value
+  
+  stroke(waveColor);
+  strokeWeight(2);
   int wfvs = areaOffset / 4;  // wave form vertical spacing
   int wfc1 = wfvs;  // wave form 1 center
   int wfc2 = wfvs * 3;  // wave form 2 center
@@ -110,25 +116,23 @@ void drawWaveForm()
     line( x1, wfc2 + player.right.get(i)*wfvs, x2, wfc2 + player.right.get(i+1)*wfvs );
   }
   // draw a line to show where in the song playback is currently located
-  stroke(180, 100, 100);
+  //stroke(positionMarkerColor);
   float posx = map(player.position(), 0, player.length(), 0, width);
   float lineWidth = width / 512;
   if(lineWidth < 1) lineWidth = 1;
-  stroke(0,100,100);
+  noStroke();
+  fill(positionMarkerColor);
   rect(posx, 0, lineWidth, areaOffset);
-
 }
 
 void mouseClicked() {
   int mX = mouseX;
   int mY = mouseY;
-  int mToKey = 0;
   
-  for(int i = 0; i < menuItemCount && mToKey == 0; i++) {
-    mToKey = 1;
-  }    
+  int task = menuItemClicked(mX, mY);
   if(mouseX < 50 && mouseY < 50)
     println("clicked < 50");
+  if(task >= 0) doTask(task);  
 }
 
 
@@ -144,8 +148,17 @@ void keyPressed() {
     int tmCheck = player.position() - millis() - msAdjust;
     if(tmCheck < 0) tmCheck = -tmCheck;
     if(tmCheck > 25) println("time out of sync at " + millis() + " by " + tmCheck);
+
+    println("effect key");
+    // create a generic effect to display for keystroke
+    // locationStart, spread, hueStart, hueEnd, hueDirection, timeStart, duration, timeBuild
+    ef = new effect(10, 8, 180, 180, 1, player.position(), 300, 0);
+    // save key and time relative to start of song
+    String effLine = nf(player.position(), 7) + ',' + char(k);
+    slLSEffect.append(effLine);
+    return;
   }
-  processKeystroke(k);
+  doTask(keyToMenuNum(k));
 }
 
 
@@ -167,61 +180,51 @@ int keyToInt(int kc, int k) {
     kc <<= 16;
     kc += k;
   }
-  print("keyCode: " + hex(keyCode) + "  key: " + hex(key));
-  println("  combined: " + hex(kc));
+  //print("keyCode: " + hex(keyCode) + "  key: " + hex(key));
+  //println("  combined: " + hex(kc));
   return kc;
 }
 
-
-void processKeystroke(int kk) {
-  switch(kk) {
-  // ESC will exit program without saving data (processing default)
-  case 0x00530013:  // ctrl-s: save
-    println("save");
-    saveData();
+void doTask(int task) {
+  switch(task) {
+  case 0:  // play pause
+    playPause();
     break;
-  case 0x004C000C:  // ctrl-l: load
+  case 1:  // ctrl-l: load
     println("load");
     loadData();
     break;
-  case 0x00030000:  // END: save file and end program
+  case 2:  // ctrl-s: save
+    println("save");
+    saveData();
+    break;
+  case 3:  // END: save file and end program
     saveData();
     exit();
     break;
-  case 0x00930000:  // DELETE: abandon data
+  case 4:  // DELETE: abandon data
     slLSEffect.clear();
     break;
-  case 0xD:  // ENTER: play from beginning
+  case 5:  // ENTER: play from beginning
     player.rewind();
     player.play();
     break;
-  case 0x008B002B:  // '+': increase window size
-  case 0x003D002B:
-    windowPercentSize += 10;
-    if(windowPercentSize > 100) windowPercentSize = 100;
+  case 6:  // ESC will exit program without saving data (processing default)
     break;
-  case 0x008C002D:  // '-': decrease window size
-  case 0x2D:
+  case 7:  // '-': decrease window size
+  case 8:
     windowPercentSize -= 10;
     if(windowPercentSize < 20) windowPercentSize = 20;
     break;
-  case ' ':  // play pause
-    playPause();
+  case 9:  // '+': increase window size
+  case 10:
+    windowPercentSize += 10;
+    if(windowPercentSize > 100) windowPercentSize = 100;
     break;
   default:
     break;
   }
-  if(kk >= 'a' && kk <= 'z') {
-    println("effect key");
-    // create a generic effect to display for keystroke
-    // locationStart, spread, hueStart, hueEnd, hueDirection, timeStart, duration, timeBuild
-    ef = new effect(10, 8, 180, 180, 1, player.position(), 300, 0);
-    // save key and time relative to start of song
-    String effLine = nf(player.position(), 7) + ',' + char(kk);
-    slLSEffect.append(effLine);  
-  }
 }
-
 
 void playPause() {
   // play pause
@@ -261,45 +264,4 @@ void loadData() {
     slLSEffect.append(aa[i]);    
     println(aa[i]);
   }
-}
-
-void setupMenuItems() {
-  int xPos, yPos, yOffset, yPosText;
-  
-  menuItemCount = 0;
-  xPos = 10;
-  yOffset = textHeight + textHeight / 3;
-  yPosText = YPosMenu + textHeight * 2;
-  yPos = yPosText; 
-  mItem[menuItemCount] = new menuItem("SPACE: pause / playback", xPos, yPos);
-  menuItemCount++;
-  yPos += yOffset;
-  mItem[menuItemCount] = new menuItem("ctrl-l: load data", xPos, yPos);
-  menuItemCount++;
-  yPos += yOffset;
-  mItem[menuItemCount] = new menuItem("ctrl-s: save data", xPos, yPos);
-  menuItemCount++;
-  yPos += yOffset;
-  mItem[menuItemCount] = new menuItem("DELETE: abandon unsaved data", xPos, yPos);
-  menuItemCount++;
-  yPos += yOffset;
-  mItem[menuItemCount] = new menuItem("ENTER: start from beginning", xPos, yPos);
-  menuItemCount++;
-  yPos += yOffset;
-  mItem[menuItemCount] = new menuItem("ESC: exit", xPos, yPos);
-  menuItemCount++;
-  xPos = width / 2 + 10;
-  yPos = yPosText;
-  mItem[menuItemCount] = new menuItem("'-': decrease window size", xPos, yPos);
-  menuItemCount++;
-  yPos += yOffset;
-  mItem[menuItemCount] = new menuItem("'+': increase window size", xPos, yPos);
-  menuItemCount++;
-  yPos += yOffset;
-}
-
-void drawMenus() {
-  fill(255);
-  for(int i = 0; i < menuItemCount; i++)
-    mItem[i].itemDraw();
 }
