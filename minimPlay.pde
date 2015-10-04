@@ -17,15 +17,18 @@ Combineeffect ce = new Combineeffect();
 render rnder = new render();
 
 menuItem[] mItem = new menuItem[20];
-int menuItemCount;
-
-// Keymapping vector. 0 = Windows, 1 = Mac, 2 = Linix 
-final int COMPUTER_TYPE = 0;
+effect[] effects = new effect[12];
 
 final int LEDCnt = 120;
+final int heightOfLine = 10;
+int waveWindowHeight;
+int xPos, yPos;
+int inKey;
 StringList slLSEffect;  // light string effect in list string format
 int msAdjust = 0;
 int textHeight;
+
+String keyString, modString, tmpString;
 
 int prevWindowPercentSize = 0;
 int windowPercentSize = 50;
@@ -39,7 +42,8 @@ int YPosEffect;
 //String songName = "Mystic Rhythms";
 //String songName = "CLOSE ENCOUNTERS OF THE THIRD KIND (Disco 45-) HIGH QUALITY";
 //String songName = "No Cures";
-String songName = "05 - Sweet Emotion";
+//String songName = "05 - Sweet Emotion";
+String songName = "Apple Loops";
 
 
 
@@ -116,83 +120,72 @@ void drawWaveForm()
 void keyPressed() {
   int k = keyToInt(keyCode, key);
   // time sync check
-  if(k >= 'a' && k <= 'z') {
-    int tmCheck = player.position() - millis() - msAdjust;
-    if(tmCheck < 0) tmCheck = -tmCheck;
-    if(tmCheck > 25) println("time out of sync at " + millis() + " by " + tmCheck);
+  if (k >= 'a' && k <= 'z') {
+    int tmCheck = player.position() - milis() - msAdjust;
+    if (tmCheck < 0) tmCheck = -tmCheck;
+    if (tmCheck > 25) println("Time async at "+millis()+" by "+tmCheck);
   }
   processKeystroke(k);
 }
 
 
 void keyReleased() {
-  int k = keyToInt(keyCode, key);
-  if(k >= 'a' && k <= 'z') {
-    // save key and time relative to start of song
-    k = char(byte(k) - 32); // capitalize
-    String effLine = nf(player.position(), 7) + ',' + k;
-    slLSEffect.append(effLine);  
+  char k;
+  if(key != CODED) {
+    k = key;
+    if(k >= 'a' && k <= 'z') {
+      // save key and time relative to start of song
+      k = char(byte(k) - 32); // capitalize
+      String effLine = nf(player.position(), 7) + ',' + k;
+      slLSEffect.append(effLine);  
+    }
   }
 }
 
-
 int keyToInt(int kc, int k) {
-  if(kc == k || (kc + 0x20) == k)
-    kc = k;
+  if (kc == k || (kc + 0x20) == k) kc = k;
   else {
     kc <<= 16;
     kc += k;
   }
-  print("keyCode: " + hex(keyCode) + "  key: " + hex(key));
-  println("  combined: " + hex(kc));
+  print("keyCode: "+hex(keyCode)+", key: "+hex(key));
+  println(", combined: "+hex(kc));
   return kc;
 }
 
-
 void processKeystroke(int kk) {
   switch(kk) {
-  // ESC will exit program without saving data (processing default)
-  case 0x00530013:  // ctrl-s: save
+  case 63245: // F11: save
     saveData();
     break;
-  case 0x004C000C:  // ctrl-l: load
+  case 63246: // F10: load
     loadData();
     break;
-  case 0x00030000:  // END: save file and end program
-    saveData();
-    exit();
+  case 8:     // backspace: abandon data
+    clearData();
     break;
-  case 0x00930000:  // DELETE: abandon data
-    slLSEffect.clear();
+  case 13:    // enter: play from beginning
+    rewind();
     break;
-  case 0xD:  // ENTER: play from beginning
-    player.rewind();
-    player.play();
+  case '=':    // +: increase window size
+    increaseSize();
     break;
-  case 0x008B002B:  // '+': increase window size
-  case 0x003D002B:
-    windowPercentSize += 10;
-    if(windowPercentSize > 100) windowPercentSize = 100;
+  case '-':    // -: decrease window size
+    decreaseSize();
     break;
-  case 0x008C002D:  // '-': decrease window size
-  case 0x2D:
-    windowPercentSize -= 10;
-    if(windowPercentSize < 20) windowPercentSize = 20;
-    break;
-  case ' ':  // play pause
+  case ' ':   // space: play pause
     playPause();
     break;
   default:
     break;
   }
   if(kk >= 'a' && kk <= 'z') {
-    println("effect key");
     // create a generic effect to display for keystroke
     // locationStart, spread, hueStart, hueEnd, hueDirection, timeStart, duration, timeBuild
-    ef = new effect(10, 8, 180, 180, 1, player.position(), 300, 0);
+    ef = effectCreate(char(kk), player.position());
     // save key and time relative to start of song
     String effLine = nf(player.position(), 7) + ',' + char(kk);
-    slLSEffect.append(effLine);  
+    slLSEffect.append(effLine);
   }
 }
 
@@ -237,43 +230,20 @@ void loadData() {
   }
 }
 
-void setupMenuItems() {
-  int xPos, yPos, yOffset, yPosText;
-  
-  menuItemCount = 0;
-  xPos = 10;
-  yOffset = textHeight + textHeight / 3;
-  yPosText = YPosMenu + textHeight * 2;
-  yPos = yPosText; 
-  mItem[menuItemCount] = new menuItem("SPACE: pause / playback", xPos, yPos);
-  menuItemCount++;
-  yPos += yOffset;
-  mItem[menuItemCount] = new menuItem("ctrl-l: load data", xPos, yPos);
-  menuItemCount++;
-  yPos += yOffset;
-  mItem[menuItemCount] = new menuItem("ctrl-s: save data", xPos, yPos);
-  menuItemCount++;
-  yPos += yOffset;
-  mItem[menuItemCount] = new menuItem("DELETE: abandon unsaved data", xPos, yPos);
-  menuItemCount++;
-  yPos += yOffset;
-  mItem[menuItemCount] = new menuItem("ENTER: start from beginning", xPos, yPos);
-  menuItemCount++;
-  yPos += yOffset;
-  mItem[menuItemCount] = new menuItem("ESC: exit", xPos, yPos);
-  menuItemCount++;
-  xPos = width / 2 + 10;
-  yPos = yPosText;
-  mItem[menuItemCount] = new menuItem("'-': decrease window size", xPos, yPos);
-  menuItemCount++;
-  yPos += yOffset;
-  mItem[menuItemCount] = new menuItem("'+': increase window size", xPos, yPos);
-  menuItemCount++;
-  yPos += yOffset;
+void clearData() {
+  slLSEffect.clear();
 }
 
-void drawMenus() {
-  fill(255);
-  for(int i = 0; i < menuItemCount; i++)
-    mItem[i].itemDraw();
+void rewind() {
+  player.cue(0);
+}
+
+void increaseSize() {
+  windowPercentSize += 10;
+  if(windowPercentSize > 100) windowPercentSize = 100;
+}
+
+void decreaseSize() {
+  windowPercentSize -= 10;
+  if(windowPercentSize < 20) windowPercentSize = 20;
 }
