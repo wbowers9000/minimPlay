@@ -119,6 +119,23 @@ void drawWaveForm()
 
 }
 
+void mouseClicked() {
+  int mX = mouseX;
+  int mY = mouseY;
+  int mToKey = 0;
+  
+  for(int i = 0; i < menuItemCount && mToKey == 0; i++) {
+    mToKey = 1;
+  }    
+  if(mouseX < 50 && mouseY < 50)
+    println("clicked < 50");
+}
+
+
+void mouseDragged() {
+  
+}
+
 
 void keyPressed() {
   int k = keyToInt(keyCode, key);
@@ -160,9 +177,11 @@ void processKeystroke(int kk) {
   switch(kk) {
   // ESC will exit program without saving data (processing default)
   case 0x00530013:  // ctrl-s: save
+    println("save");
     saveData();
     break;
   case 0x004C000C:  // ctrl-l: load
+    println("load");
     loadData();
     break;
   case 0x00030000:  // END: save file and end program
