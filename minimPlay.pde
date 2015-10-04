@@ -23,6 +23,9 @@ color fillHighlight;
 color positionMarkerColor;
 color waveColor;
 
+menuItem[] mItem = new menuItem[20];
+int menuItemCount;
+
 final int LEDCnt = 120;
 StringList slLSEffect;  // light string effect in list string format
 int msAdjust = 0;
@@ -40,9 +43,18 @@ int YPosEffect;
 //String songName = "Mystic Rhythms";
 //String songName = "CLOSE ENCOUNTERS OF THE THIRD KIND (Disco 45-) HIGH QUALITY";
 //String songName = "No Cures";
-String songName = "05 - Sweet Emotion";
+//String songName = "05 - Sweet Emotion";
+String songName = "Apple Loops";
 
+// Keymapping vector. 0 = Windows, 1 = Mac, 2 = Linux
+//String system = toString(System.getProperty("os.name"));
 
+//if (system.indexOf("Windows") != -1)
+//  final int COMPUTER_TYPE = 0;
+//else if (system.indexOf("Mac OS X") != -1)
+//  final int COMPUTER_TYPE = 1;
+//else
+//  final int COMPUTER_TYPE = 2;
 
 void setup()
 {
