@@ -220,11 +220,13 @@ void doTask(int task) {
   case 8:
     windowPercentSize -= 10;
     if(windowPercentSize < 20) windowPercentSize = 20;
+    println("WindowPercentSize", windowPercentSize);
     break;
   case 9:  // increase window size
   case 10:
     windowPercentSize += 10;
     if(windowPercentSize > 100) windowPercentSize = 100;
+    println("WindowPercentSize", windowPercentSize);
     break;
   default:
     break;
