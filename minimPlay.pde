@@ -46,16 +46,6 @@ int YPosEffect;
 //String songName = "05 - Sweet Emotion";
 String songName = "Apple Loops";
 
-// Keymapping vector. 0 = Windows, 1 = Mac, 2 = Linux
-//String system = toString(System.getProperty("os.name"));
-
-//if (system.indexOf("Windows") != -1)
-//  final int COMPUTER_TYPE = 0;
-//else if (system.indexOf("Mac OS X") != -1)
-//  final int COMPUTER_TYPE = 1;
-//else
-//  final int COMPUTER_TYPE = 2;
-
 void setup()
 {
   size(512, 400, P3D);
@@ -154,7 +144,9 @@ void mouseDragged() {
 
 
 void keyPressed() {
+  if(key == 27) key = 0;
   int k = keyToInt(keyCode, key);
+  println(int(keyCode), int(key), keyToInt(keyCode, key));
   // time sync check
   if(k >= 'a' && k <= 'z') {
     int tmCheck = player.position() - millis() - msAdjust;
@@ -202,33 +194,34 @@ void doTask(int task) {
   case 0:  // play pause
     playPause();
     break;
-  case 1:  // ctrl-l: load
+  case 1:  // load
     println("load");
     loadData();
     break;
-  case 2:  // ctrl-s: save
+  case 2:  // save
     println("save");
     saveData();
     break;
-  case 3:  // END: save file and end program
+  case 3:  // save file and end program
     saveData();
     exit();
     break;
-  case 4:  // DELETE: abandon data
+  case 4:  // abandon data
     slLSEffect.clear();
     break;
-  case 5:  // ENTER: play from beginning
+  case 5:  // play from beginning
     player.rewind();
     player.play();
     break;
-  case 6:  // ESC will exit program without saving data (processing default)
+  case 6:  // exit program without saving data (processing default)
+    exit();
     break;
-  case 7:  // '-': decrease window size
+  case 7:  // decrease window size
   case 8:
     windowPercentSize -= 10;
     if(windowPercentSize < 20) windowPercentSize = 20;
     break;
-  case 9:  // '+': increase window size
+  case 9:  // increase window size
   case 10:
     windowPercentSize += 10;
     if(windowPercentSize > 100) windowPercentSize = 100;
