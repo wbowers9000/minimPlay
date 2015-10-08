@@ -83,6 +83,7 @@ void draw()
     prevWindowPercentSize = windowPercentSize;
     surface.setSize(displayWidth * windowPercentSize / 100, displayHeight * windowPercentSize / 100);
   
+    textSize(windowPercentSize/2.6);
     textHeight = int(textAscent()) + int(textDescent());
     areaOffset = height / 3;
     YPosWave = 0;
@@ -195,11 +196,9 @@ void doTask(int task) {
     playPause();
     break;
   case 1:  // load
-    println("load");
     loadData();
     break;
   case 2:  // save
-    println("save");
     saveData();
     break;
   case 3:  // save file and end program
@@ -207,26 +206,21 @@ void doTask(int task) {
     exit();
     break;
   case 4:  // abandon data
-    slLSEffect.clear();
+    abandonData();
     break;
   case 5:  // play from beginning
-    player.rewind();
-    player.play();
+    rewind();
     break;
   case 6:  // exit program without saving data (processing default)
     exit();
     break;
   case 7:  // decrease window size
   case 8:
-    windowPercentSize -= 10;
-    if(windowPercentSize < 20) windowPercentSize = 20;
-    println("WindowPercentSize", windowPercentSize);
+    windowResize(0);
     break;
   case 9:  // increase window size
   case 10:
-    windowPercentSize += 10;
-    if(windowPercentSize > 100) windowPercentSize = 100;
-    println("WindowPercentSize", windowPercentSize);
+    windowResize(1);
     break;
   default:
     break;
@@ -252,8 +246,15 @@ void playPause() {
   }
 }  
 
+void rewind() {
+  player.rewind();
+  if (player.isPlaying()) {
+    player.play();
+  }
+}
 
 void saveData() {
+  println("save");
   slLSEffect.sort();
   String[] aa = new String[slLSEffect.size()];
   for(int i = 0; i < slLSEffect.size(); i++) {
@@ -265,10 +266,28 @@ void saveData() {
 
 
 void loadData() {
-  slLSEffect.clear();
+  println("load");
+  abandonData();
   String[] aa = loadStrings(songName + ".md1");
   for(int i = 0; i < aa.length; i++) {
     slLSEffect.append(aa[i]);    
     println(aa[i]);
   }
+}
+
+void abandonData() {
+  slLSEffect.clear();
+}
+
+
+void windowResize(int direction) {
+  if (direction == 0) {
+    windowPercentSize -= 10;
+    if(windowPercentSize < 20) windowPercentSize = 20;
+  }
+  else {
+    windowPercentSize += 10;
+    if(windowPercentSize > 100) windowPercentSize = 100;
+  }
+  println("WindowPercentSize", windowPercentSize);
 }

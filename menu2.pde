@@ -81,7 +81,18 @@ void setupMenu() {
     mItm.add(new menuItem("'+': increase window size", 61));
     mItm.add(new menuItem("", 3997739)); // second code for '+'
   } else {
-    final int COMPUTER_TYPE = 2;
+    // XXX Currently using Windows keys
+    mItm.add(new menuItem("SPACE: pause / playback", int(' ')));
+    mItm.add(new menuItem("ctrl-l: load data", 0x004C000C));
+    mItm.add(new menuItem("ctrl-s: save data", 0x00530013));
+    mItm.add(new menuItem("END: save file and end program", 0x00030000));
+    mItm.add(new menuItem("DELETE: abandon unsaved data", 0x00930000));
+    mItm.add(new menuItem("ENTER: play from beginning", 0xD));
+    mItm.add(new menuItem("ESC: exit", 0x1B));
+    mItm.add(new menuItem("'-': decrease window size", 0x008C002D));
+    mItm.add(new menuItem("", 0x2D));
+    mItm.add(new menuItem("'+': increase window size", 0x008B002B));
+    mItm.add(new menuItem("", 0x003D002B)); // second code for '+'
   }
   
   // Objects can be added to an ArrayList with add()
