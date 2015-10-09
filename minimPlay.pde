@@ -7,6 +7,7 @@
   * visit http://code.compartmental.net/minim/
   */
 PFont font;
+int globalFontSize = 18;
 
 import ddf.minim.*;
 
@@ -14,7 +15,7 @@ Minim minim;
 AudioPlayer player;
 
 Combineeffect ce = new Combineeffect();
-render rnder = new render();
+//render rnder = new render();
 
 color backgroundNormal;
 color backgroundHighlight;
@@ -22,15 +23,18 @@ color fillNormal;
 color fillHighlight;
 color positionMarkerColor;
 color waveColor;
+color initialEffectColor;
 
 final int LEDCnt = 120;
-StringList slLSEffect;  // light string effect in list string format
+StringList LSEffect;  // light string effect in list string format
 int msAdjust = 0;
 int textHeight;
 
 int prevWindowPercentSize = 0;
 int windowPercentSize = 50;
+boolean sizeChange = false;
 
+// Y positions of the different areas
 int areaOffset;
 int YPosWave;
 int YPosMenu;
@@ -50,6 +54,7 @@ void setup()
   surface.setResizable(true);
   font = loadFont("Arial-BoldMT-18.vlw");
   textFont(font);
+  textSize(globalFontSize);
   
   colorMode(HSB, 360, 100, 100);
   // setup color preferences
@@ -59,35 +64,34 @@ void setup()
   fillHighlight = color(179, 99, 99);
   positionMarkerColor = color(180, 99, 99);
   waveColor = color(272, 70, 99);
+  initialEffectColor = color(196, 99, 99);
 
   noStroke();
   background(backgroundNormal);
 
   setupMenu();
+  setupReferenceDisplay();
+  setupEffectSelectAry();
   
-  slLSEffect = new StringList();
+  LSEffect = new StringList();
   minim = new Minim(this);  // to load files from data directory
   player = minim.loadFile(songName + ".mp3");
-  // setup refence bar
-  refDisp = new HSBColor[LEDCnt];
-  for(int i = 0; i < refDisp.length; i++) refDisp[i] = new HSBColor();
-  for(int i = 0; i < refDisp.length; i += 2) refDisp[i].set((i * 5) % 360, 100, 100);
 }
 
 
 void draw()
 {
-  if(windowPercentSize != prevWindowPercentSize) {
+  sizeChange = windowPercentSize != prevWindowPercentSize;
+  if(sizeChange) {
     prevWindowPercentSize = windowPercentSize;
     surface.setSize(displayWidth * windowPercentSize / 100, displayHeight * windowPercentSize / 100);
-  
     textHeight = int(textAscent()) + int(textDescent());
     areaOffset = height / 3;
     YPosWave = 0;
     YPosMenu = YPosWave + areaOffset;
     YPosEffect = YPosMenu + areaOffset;
     rePositionMenu();
-    rnder.displaySetup(LEDCnt);
+    rePositionEffects();
   }
   background(backgroundNormal);  // clear screen
   drawWaveForm();
@@ -126,20 +130,16 @@ void drawWaveForm()
 }
 
 void mouseClicked() {
-  int mX = mouseX;
-  int mY = mouseY;
-  
-  int task = menuItemClicked(mX, mY);
-  if(mouseX < 50 && mouseY < 50)
-    println("clicked < 50");
-  if(task >= 0) doTask(task);  
+  int mX = mouseX, mY = mouseY;
+  if(mY >= YPosMenu && mY < YPosEffect) 
+    doTask(menuItemClicked(mouseX, mouseY));
+  else if(mY >= YPosEffect) 
+    effectClicked();
 }
-
 
 void mouseDragged() {
   
 }
-
 
 void keyPressed() {
   int k = keyToInt(keyCode, key);
@@ -152,10 +152,10 @@ void keyPressed() {
     println("effect key");
     // create a generic effect to display for keystroke
     // locationStart, spread, hueStart, hueEnd, hueDirection, timeStart, duration, timeBuild
-    ef = new effect(10, 8, 180, 180, 1, player.position(), 300, 0);
+    efGeneric = new effect(10, 8, 180, 180, 1, player.position(), 300, 0);
     // save key and time relative to start of song
     String effLine = nf(player.position(), 7) + ',' + char(k);
-    slLSEffect.append(effLine);
+    LSEffect.append(effLine);
     return;
   }
   doTask(keyToMenuNum(k));
@@ -168,7 +168,7 @@ void keyReleased() {
     // save key and time relative to start of song
     k = char(byte(k) - 32); // capitalize
     String effLine = nf(player.position(), 7) + ',' + k;
-    slLSEffect.append(effLine);  
+    LSEffect.append(effLine);  
   }
 }
 
@@ -203,7 +203,7 @@ void doTask(int task) {
     exit();
     break;
   case 4:  // DELETE: abandon data
-    slLSEffect.clear();
+    LSEffect.clear();
     break;
   case 5:  // ENTER: play from beginning
     player.rewind();
@@ -247,21 +247,21 @@ void playPause() {
 
 
 void saveData() {
-  slLSEffect.sort();
-  String[] aa = new String[slLSEffect.size()];
-  for(int i = 0; i < slLSEffect.size(); i++) {
-    println(slLSEffect.get(i));
-    aa[i] = slLSEffect.get(i);
+  LSEffect.sort();
+  String[] aa = new String[LSEffect.size()];
+  for(int i = 0; i < LSEffect.size(); i++) {
+    println(LSEffect.get(i));
+    aa[i] = LSEffect.get(i);
   }
   saveStrings(songName + ".md1", aa);
 }
 
 
 void loadData() {
-  slLSEffect.clear();
+  LSEffect.clear();
   String[] aa = loadStrings(songName + ".md1");
   for(int i = 0; i < aa.length; i++) {
-    slLSEffect.append(aa[i]);    
+    LSEffect.append(aa[i]);    
     println(aa[i]);
   }
 }

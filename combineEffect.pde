@@ -41,37 +41,3 @@ class Combineeffect {
   }
   
 }
-
-
-class render {
-  int effLineCount;  // number of effect lines
-  int effLineWidth;  // width of visible portion of effect line
-  int xPosLine;  // x positon of visible portion of effect line
-  int yHeight;  // effect line height
-  int yVisible;  // visible portion of effect line height
-  
-  render() {
-  }
-
-  void displaySetup(int pixelCount) {
-    effLineCount = 14;  // 12 effects + 1 reference line + 1 combined line
-    effLineWidth = width / pixelCount;
-    xPosLine = (width - effLineWidth * pixelCount) / 2;
-    yHeight = areaOffset / effLineCount;
-    yVisible = yHeight * 9 / 10;
-  }
-
-  
-  void line(HSBColor[] ary, int yPos) {
-    color cc;
-    int xpos = xPosLine;
-    
-    if(ary == null) return;
-    for(int i = 0; i < ary.length; i++) {
-      cc = ary[i].getColor();
-      fill(cc);
-      xpos += effLineWidth;
-      rect(xpos, yPos, effLineWidth, yVisible);
-    }
-  }
-}

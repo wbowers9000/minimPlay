@@ -1,4 +1,63 @@
+class menuItemClickable {
+  char ch;
+  float xP;
+  float yP;
+  private float textXPos;
+  private float textYPos;
+  private float xBorder;  // x axis area around character for select box
+  private float yBorder;  // y axis area around character for select box
+  int txtSz;  // text size for this area
+  float totalWidth;
+  float totalHeight;
+  
+  menuItemClickable(char ch) {
+    this.ch = ch;
+    this.xP = 0;
+    this.yP = 0;
+  }
+  
+  void computeSize(float heightOfLEDStrip) {
+    // adjust height until it fits within a pixel
+    txtSz = globalFontSize + 1;
+    do {
+      txtSz--;
+      textSize(txtSz);
+      yBorder = textAscent() * 0.125;
+      totalHeight = textAscent() + yBorder + yBorder;
+    } while(totalHeight > heightOfLEDStrip && txtSz > 1);
+    String ss = "W";
+    float ff = textWidth(ss);
+    xBorder = ff * 0.125;
+    totalWidth = ff + xBorder + xBorder;
+  }
+  
+  void setPosition(float xPos, float yPos) {
+    xP = xPos;
+    yP = yPos;
+    textXPos = xP + xBorder;
+    textYPos = yP + yBorder + textAscent();
+  }
 
+  void itemDraw() {
+    // call textSize(obj.txtSz) before multiple calls to itemDraw
+    if(mouseOver(mouseX, mouseY)) {
+      fill(backgroundHighlight);
+      rect(xP, yP, totalWidth, totalHeight);
+      fill(fillHighlight);
+    }
+    else
+      fill(fillNormal);
+    text(ch, textXPos, textYPos);
+  }
+  
+  
+  boolean mouseOver(int mX, int mY) {
+    if(mX >= xP && mX < (xP + totalWidth) && mY >= yP && 
+      mY < (yP + totalHeight)) return true;
+    return false;
+  }
+  
+}
 
 class menuItem {
   String iText;
@@ -54,6 +113,7 @@ class menuItem {
 }
 
 
+
 ArrayList<menuItem> mItm = new ArrayList<menuItem>();
 
 void setupMenu() {
@@ -76,7 +136,6 @@ void rePositionMenu() {
   menuItem mi;
   int xPos, yPos, yOffset, yPosText, yPosUpperLimit;
   
-  //menuItemCount = 0;
   xPos = 10;
   yOffset = textHeight + textHeight / 3;
   yPosText = YPosMenu + textHeight * 2;
@@ -100,6 +159,7 @@ void rePositionMenu() {
 
 
 void drawMenu() {
+  
   menuItem mi;
   
   for (int i = 0; i < mItm.size(); i++) {
