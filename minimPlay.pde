@@ -25,6 +25,9 @@ color positionMarkerColor;
 color waveColor;
 color initialEffectColor;
 
+menuItem[] mItem = new menuItem[20];
+int menuItemCount;
+
 final int LEDCnt = 120;
 StringList LSEffect;  // light string effect in list string format
 int msAdjust = 0;
@@ -45,8 +48,7 @@ int YPosEffect;
 //String songName = "CLOSE ENCOUNTERS OF THE THIRD KIND (Disco 45-) HIGH QUALITY";
 //String songName = "No Cures";
 String songName = "05 - Sweet Emotion";
-
-
+//String songName = "Apple Loops";
 
 void setup()
 {
@@ -85,6 +87,10 @@ void draw()
   if(sizeChange) {
     prevWindowPercentSize = windowPercentSize;
     surface.setSize(displayWidth * windowPercentSize / 100, displayHeight * windowPercentSize / 100);
+    //=============================
+    // this will not work if we to change the Font
+    textSize(windowPercentSize/2.6);
+    // ============================
     textHeight = int(textAscent()) + int(textDescent());
     areaOffset = height / 3;
     YPosWave = 0;
@@ -130,7 +136,7 @@ void drawWaveForm()
 }
 
 void mouseClicked() {
-  int mX = mouseX, mY = mouseY;
+  int mY = mouseY;
   if(mY >= YPosMenu && mY < YPosEffect) 
     doTask(menuItemClicked(mouseX, mouseY));
   else if(mY >= YPosEffect) 
@@ -142,7 +148,9 @@ void mouseDragged() {
 }
 
 void keyPressed() {
+  if(key == 27) key = 0;
   int k = keyToInt(keyCode, key);
+  println(int(keyCode), int(key), keyToInt(keyCode, key));
   // time sync check
   if(k >= 'a' && k <= 'z') {
     int tmCheck = player.position() - millis() - msAdjust;
@@ -190,36 +198,32 @@ void doTask(int task) {
   case 0:  // play pause
     playPause();
     break;
-  case 1:  // ctrl-l: load
-    println("load");
+  case 1:  // load
     loadData();
     break;
-  case 2:  // ctrl-s: save
-    println("save");
+  case 2:  // save
     saveData();
     break;
-  case 3:  // END: save file and end program
+  case 3:  // save file and end program
     saveData();
     exit();
     break;
-  case 4:  // DELETE: abandon data
-    LSEffect.clear();
+  case 4:  // abandon data
+    abandonData();
     break;
-  case 5:  // ENTER: play from beginning
-    player.rewind();
-    player.play();
+  case 5:  // play from beginning
+    rewind();
     break;
-  case 6:  // ESC will exit program without saving data (processing default)
+  case 6:  // exit program without saving data (processing default)
+    exit();
     break;
-  case 7:  // '-': decrease window size
+  case 7:  // decrease window size
   case 8:
-    windowPercentSize -= 10;
-    if(windowPercentSize < 20) windowPercentSize = 20;
+    windowResize(0);
     break;
-  case 9:  // '+': increase window size
+  case 9:  // increase window size
   case 10:
-    windowPercentSize += 10;
-    if(windowPercentSize > 100) windowPercentSize = 100;
+    windowResize(1);
     break;
   default:
     break;
@@ -245,6 +249,12 @@ void playPause() {
   }
 }  
 
+void rewind() {
+  player.rewind();
+  if (player.isPlaying()) {
+    player.play();
+  }
+}
 
 void saveData() {
   LSEffect.sort();
@@ -264,4 +274,21 @@ void loadData() {
     LSEffect.append(aa[i]);    
     println(aa[i]);
   }
+}
+
+void abandonData() {
+  LSEffect.clear();
+}
+
+
+void windowResize(int direction) {
+  if (direction == 0) {
+    windowPercentSize -= 10;
+    if(windowPercentSize < 20) windowPercentSize = 20;
+  }
+  else {
+    windowPercentSize += 10;
+    if(windowPercentSize > 100) windowPercentSize = 100;
+  }
+  println("WindowPercentSize", windowPercentSize);
 }
