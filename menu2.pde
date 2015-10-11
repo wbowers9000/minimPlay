@@ -1,3 +1,4 @@
+// menu item class //<>// //<>//
 class menuItemClickable {
   char ch;
   float xP;
@@ -16,21 +17,7 @@ class menuItemClickable {
     this.yP = 0;
   }
   
-  void computeSize(float heightOfLEDStrip) {
-    // adjust height until it fits within a pixel
-    txtSz = globalFontSize + 1;
-    do {
-      txtSz--;
-      textSize(txtSz);
-      yBorder = textAscent() * 0.125;
-      totalHeight = textAscent() + yBorder + yBorder;
-    } while(totalHeight > heightOfLEDStrip && txtSz > 1);
-    String ss = "W";
-    float ff = textWidth(ss);
-    xBorder = ff * 0.125;
-    totalWidth = ff + xBorder + xBorder;
-  }
-  
+   
   void setPosition(float xPos, float yPos) {
     xP = xPos;
     yP = yPos;
@@ -39,7 +26,6 @@ class menuItemClickable {
   }
 
   void itemDraw() {
-    // call textSize(obj.txtSz) before multiple calls to itemDraw
     if(mouseOver(mouseX, mouseY)) {
       fill(backgroundHighlight);
       rect(xP, yP, totalWidth, totalHeight);
@@ -58,6 +44,7 @@ class menuItemClickable {
   }
   
 }
+
 
 class menuItem {
   String iText;
@@ -182,13 +169,11 @@ void rePositionMenu() {
         xPos = width / 2 + 10;
       }
     }
-    //mi.display();
   }
 }
 
 
 void drawMenu() {
-  
   menuItem mi;
   
   for (int i = 0; i < mItm.size(); i++) {
