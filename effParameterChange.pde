@@ -1,11 +1,11 @@
 // set yPos when known
 
 class effParameterChange {
-  float yPos;
+  float yPos;  // one line, all y positions are the same 
   //float textHeight;
   //float charWidth; // width of a character
   float spaceBetweenParam;
-  float boxYPos;
+  //float boxYPos;
 
   droplet drplt = new droplet();
   textAndBoxSize tbs = new textAndBoxSize();
@@ -16,6 +16,8 @@ class effParameterChange {
     spaceBetweenParam = tbs.charWidth * 7;
     // test droplet parameter entry area
     drplt.reposition();
+    yPos--; // debug stop point //<>//
+    yPos++;
   }
   
   class param {
@@ -75,11 +77,11 @@ class effParameterChange {
 
     void drawMe() {
       textSize(tbs.txtSize);
+      fill(backgroundHighlight);
+      rect(xPosInp, yPos, inputWidth, tbs.totalHeight);
       fill(fillNormal);
       text(desc, xPos, tbs.textYPos);
-      fill(backgroundHighlight);
-      rect(xPosInp, boxYPos, inputWidth, tbs.totalHeight);
-      
+     
 /*      
       if(mouseOver(mouseX, mouseY)) {
         fill(fillHighlight);

@@ -13,6 +13,7 @@ import ddf.minim.*;
 
 effectDisplay ed = new effectDisplay();
 effParameterChange epc = new effParameterChange();
+mainMenu mm = new mainMenu();
 
 Minim minim;
 AudioPlayer player;
@@ -31,7 +32,6 @@ color debugColor;
 final int LEDCnt = 120;
 StringList LSEffect;  // light string effect in list string format
 int msAdjust = 0;
-int textHeight;
 
 int prevWindowPercentSize = 0;
 int windowPercentSize = 50;
@@ -76,7 +76,7 @@ void setup()
   noStroke();
   background(backgroundNormal);
 
-  setupMenu();
+  mm.setupMenu();
   epc.drplt.doSetup();
   ed.setupReferenceDisplay();
   ed.setupEffectSelectAry();
@@ -95,15 +95,20 @@ void draw()
     surface.setSize(displayWidth * windowPercentSize / 100, displayHeight * windowPercentSize / 100);
     //=============================
     // this will not work if we to change the Font
-    textSize(windowPercentSize/2.6);
+    //textSize(windowPercentSize/2.6);
     // ============================
-    textHeight = int(textAscent()) + int(textDescent());
     areaOffset = height / 3;
     YPosWave = 0;
     YPosMenu = YPosWave + areaOffset;
     YPosEffect = YPosMenu + areaOffset;
-    rePositionMenu();
+    
+    mm.rePositionMenu();
+    
     ed.rePositionEffects();
+    // y position of effect parameter change
+    // height is the height of input box (epc.tbs.totalHeight)
+    float textHeight = textAscent() + textDescent();
+    epc.yPos = YPosEffect - textHeight - textHeight;
     epc.reposition();
     //epc.drplt.reposition();
   }
@@ -149,7 +154,7 @@ void drawWaveForm()
 void mouseClicked() {
   int mY = mouseY;
   if(mY >= YPosMenu && mY < YPosEffect) 
-    doTask(menuItemClicked(mouseX, mouseY));
+    doTask(mm.menuItemClicked(mouseX, mouseY));
   else if(mY >= YPosEffect) 
     ed.effectClicked();
 }
@@ -177,7 +182,7 @@ void keyPressed() {
     LSEffect.append(effLine);
     return;
   }
-  doTask(keyToMenuNum(k));
+  doTask(mm.keyToMenuNum(k));
 }
 
 
