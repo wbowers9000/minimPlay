@@ -27,6 +27,7 @@ color positionMarkerColor;
 color waveColor;
 color initialEffectColor;
 color debugColor;
+
 final int LEDCnt = 120;
 StringList LSEffect;  // light string effect in list string format
 int msAdjust = 0;
