@@ -7,26 +7,27 @@
   * visit http://code.compartmental.net/minim/
   */
 PFont font;
-int globalFontSize = 18;
+int globalFontSize = 18;  // starting point for font text sizing
 
 import ddf.minim.*;
+
+effectDisplay ed = new effectDisplay();
+effParameterChange epc = new effParameterChange();
 
 Minim minim;
 AudioPlayer player;
 
-Combineeffect ce = new Combineeffect();
-//render rnder = new render();
 
 color backgroundNormal;
 color backgroundHighlight;
 color fillNormal;
 color fillHighlight;
+// add colors for input box
 color positionMarkerColor;
 color waveColor;
 color initialEffectColor;
+color debugColor;
 
-menuItem[] mItem = new menuItem[20];
-int menuItemCount;
 
 final int LEDCnt = 120;
 StringList LSEffect;  // light string effect in list string format
@@ -37,10 +38,14 @@ int prevWindowPercentSize = 0;
 int windowPercentSize = 50;
 boolean sizeChange = false;
 
-// Y positions of the different areas
+// metrics of different areas
+// width and height are determined by window size
 int areaOffset;
+int XPosWave = 0;
 int YPosWave;
+int XPosMenu = 0;
 int YPosMenu;
+int XPosEffect = 0;
 int YPosEffect;
 
 //String songName = "07  Pink - Funhouse";
@@ -67,13 +72,15 @@ void setup()
   positionMarkerColor = color(180, 99, 99);
   waveColor = color(272, 70, 99);
   initialEffectColor = color(196, 99, 99);
+  debugColor = color(60, 99, 99);
 
   noStroke();
   background(backgroundNormal);
 
   setupMenu();
-  setupReferenceDisplay();
-  setupEffectSelectAry();
+  epc.drplt.doSetup();
+  ed.setupReferenceDisplay();
+  ed.setupEffectSelectAry();
   
   LSEffect = new StringList();
   minim = new Minim(this);  // to load files from data directory
@@ -97,12 +104,17 @@ void draw()
     YPosMenu = YPosWave + areaOffset;
     YPosEffect = YPosMenu + areaOffset;
     rePositionMenu();
-    rePositionEffects();
+    ed.rePositionEffects();
+    epc.reposition();
+    //epc.drplt.reposition();
   }
   background(backgroundNormal);  // clear screen
   drawWaveForm();
-  drawEffDisp();
-  drawMenu();
+  ed.drawEffDisp();
+  //drawMenu();
+  epc.drplt.drawMe();  // effect parameter change
+  stroke(debugColor);
+  line(0, YPosEffect, width, YPosEffect);
 }
 
 
@@ -140,7 +152,7 @@ void mouseClicked() {
   if(mY >= YPosMenu && mY < YPosEffect) 
     doTask(menuItemClicked(mouseX, mouseY));
   else if(mY >= YPosEffect) 
-    effectClicked();
+    ed.effectClicked();
 }
 
 void mouseDragged() {
@@ -160,7 +172,7 @@ void keyPressed() {
     println("effect key");
     // create a generic effect to display for keystroke
     // locationStart, spread, hueStart, hueEnd, hueDirection, timeStart, duration, timeBuild
-    efGeneric = new effect(10, 8, 180, 180, 1, player.position(), 300, 0);
+    ed.efGeneric = new effect(10, 8, 180, 180, 1, player.position(), 300, 0);
     // save key and time relative to start of song
     String effLine = nf(player.position(), 7) + ',' + char(k);
     LSEffect.append(effLine);
