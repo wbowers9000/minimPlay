@@ -24,37 +24,31 @@ class textAndBoxSize {
   float yBorder;
   float totalHeight;  // total height of input box
   float xBorder;
-  float totalWidth;
   float borderMultiplier;
   float charWidth;  // width of average character
 
-  void computeSize(float maxHeight, char ch) {
-    computeSize(maxHeight, textWidth(ch));
+  void computeSize(float maxHeight) {
+    comp(globalFontSize, maxHeight);
   }
-  
-  void computeSize(float maxHeight, char ch, float mult) {
-    computeSize(maxHeight, textWidth(ch) * mult);
-  }
-  
-  void computeSize(float maxHeight, String ss) {
-    computeSize(maxHeight, textWidth(ss));
-  }
-  
-  void computeSize(float maxHeight, float maxWidth) {
+
+  void comp(int txtSize, float maxHeight) {
     borderMultiplier = 0.125;
+    txtSize++;
     // adjust height until it fits within a maxium
-    txtSize = globalFontSize + 1;
     do {
       txtSize--;
-      textSize(txtSize);
+      if(txtSize >= 2)
+        textSize(txtSize);
+      else
+        println("#2 txtSize:  " + txtSize);
       yBorder = textAscent() * borderMultiplier;
       totalHeight = textAscent() + yBorder + yBorder;
       charWidth = textWidth('%');
       xBorder = charWidth * borderMultiplier;
       textXPos = xBorder;
-      totalWidth = charWidth + xBorder + xBorder;
-    } while((totalHeight >= maxHeight || totalWidth >= maxWidth) && txtSize > 1);
+    } while(totalHeight >= maxHeight && txtSize >= 2);
     textYPos = textAscent() + yBorder;
   }
-
+  
+  float oneCharBoxWidth() {return charWidth + xBorder + xBorder;}
 }

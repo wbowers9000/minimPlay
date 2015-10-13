@@ -1,58 +1,24 @@
-// menu item class //<>//
-class menuItemClickable {
-  char ch;
-  float xP;
-  float yP;
-  private float textXPos;
-  private float textYPos;
-  private float xBorder;  // x axis area around character for select box
-  private float yBorder;  // y axis area around character for select box
-  int txtSz;  // text size for this area
-  float totalWidth;
-  float totalHeight;
-  
-  menuItemClickable(char ch) {
-    this.ch = ch;
-    this.xP = 0;
-    this.yP = 0;
-  }
-  
-   
-  void setPosition(float xPos, float yPos) {
-    xP = xPos;
-    yP = yPos;
-    textXPos = xP + xBorder;
-    textYPos = yP + yBorder + textAscent();
-  }
-
-  void itemDraw() {
-    if(mouseOver(mouseX, mouseY)) {
-      fill(backgroundHighlight);
-      rect(xP, yP, totalWidth, totalHeight);
-      fill(fillHighlight);
-    }
-    else
-      fill(fillNormal);
-    text(ch, textXPos, textYPos);
-  }
-  
-  
-  boolean mouseOver(int mX, int mY) {
-    if(mX >= xP && mX < (xP + totalWidth) && mY >= yP && 
-      mY < (yP + totalHeight)) return true;
-    return false;
-  }
-  
-}
-
+// set mainYPos when known //<>//
 class mainMenu {
+  float mainYPos;
+  float mainHeight;
   textAndBoxSize tbs = new textAndBoxSize();
   
+  // action: 0 - mouse over, 1 - mouse clicked
+  boolean mouseOver(int mX, int mY, int action) {
+    boolean rtn = mY >= mainYPos && mY < (mainYPos + mainHeight);
+    if(rtn) {
+      if(action == 0) {println("mouse in mainMenu"); return rtn;}
+      if(action == 1) {doTask(menuItemClicked(mX, mY)); return rtn;}
+    }
+    return rtn;
+  }
+    
   class menuItem {
     String iText;
-    float xPos;
-    float yPos;
-    float tWidth;
+    float xPos;  // set in rePositionMenu()
+    float yPos;  // set in rePositionMenu()
+    float tWidth;  // set in rePositionMenu()
     int toKey;
     
     menuItem() {
@@ -68,7 +34,7 @@ class mainMenu {
       this.tWidth = int(textWidth(iText));
       this.toKey = toKey;
     }
-    
+/*    
     menuItem(String iText, int xPos, int yPos, int toKey) {
       this.iText = iText;
       this.xPos = xPos;
@@ -76,14 +42,13 @@ class mainMenu {
       this.tWidth = int(textWidth(iText));
       this.toKey = toKey;
     }
-    
+*/    
     void itemDraw() {
       fill(fillNormal);
       if(mouseOver(mouseX, mouseY)) {
         fill(backgroundHighlight);
         float overFill = tbs.totalHeight / 7;
-        float th = tbs.totalHeight + overFill;
-        rect(xPos - overFill, yPos - th + int(textDescent()), tWidth + overFill + overFill, th);
+        rect(xPos, yPos, tWidth, tbs.totalHeight);
         fill(fillHighlight);
       }
       text(iText, xPos, yPos);
@@ -152,11 +117,39 @@ class mainMenu {
   
   void rePositionMenu() {
     menuItem mi;
-    float xPos, yPos, yOffset, yPosText, yPosUpperLimit;
+    float xPos, yPos, yOffset, yp, yPosUpperLimit;
     
     textSize(globalFontSize);
     float tHeight = textAscent() + textDescent() + 5;
-    tbs.computeSize(tHeight, width); // compute text size
+    tbs.computeSize(tHeight); // compute text and box size
+    // TODO: redo all metrics using tbs.
+    xPos = 10;
+    yOffset = tbs.totalHeight + tbs.totalHeight / 3;
+    yp = mainYPos + tbs.totalHeight;
+    yPosUpperLimit = mainYPos + mainHeight - tbs.totalHeight;
+    
+    for (int i = 0; i < mItm.size(); i++) {
+      mi = mItm.get(i);
+      if(mi.tWidth != 0) {
+        mi.xPos = xPos;
+        mi.yPos = yp;
+        yp += yOffset;
+        if(yp > yPosUpperLimit) {
+          yp = mainYPos + tbs.totalHeight;
+          xPos = width / 2 + 10;
+        }
+      }
+    }
+  }
+  
+/*  
+  void rePositionMenu() {
+    menuItem mi;
+    float xPos, yPos, yOffset, yPosText, yPosUpperLimit;
+    
+    textSize(16);
+    float tHeight = textAscent() + textDescent() + 5;
+    tbs.computeSize(tHeight); // compute text and box size
     // TODO: redo all metrics using tbs.
     xPos = 10;
     yOffset = tbs.totalHeight + tbs.totalHeight / 3;
@@ -177,7 +170,7 @@ class mainMenu {
       }
     }
   }
-  
+*/
   
   void drawMenu() {
     menuItem mi;

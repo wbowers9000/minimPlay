@@ -1,22 +1,31 @@
 // set yPos when known
 
 class effParameterChange {
-  float yPos;  // one line, all y positions are the same 
-  //float textHeight;
-  //float charWidth; // width of a character
+  float yPos;  // one line, all y positions are the same
+  float mHeight;
   float spaceBetweenParam;
-  //float boxYPos;
 
   droplet drplt = new droplet();
   textAndBoxSize tbs = new textAndBoxSize();
 
-  //TODO: update this using textAndBoxSize object 
+  // action: 0 - mouse over, 1 - mouse clicked
+  boolean mouseOver(int mX, int mY, int action) {
+    boolean rtn = mY >= yPos && mY < (yPos + mHeight);
+    if(rtn) {
+      if(action == 0) {println("mouse in parameter change"); return rtn;}
+      if(action == 1) {/* do something */; return rtn;}
+    }
+    return rtn;
+  }
+    
+
   void reposition() {
     textSize(globalFontSize);
+    tbs.computeSize(textAscent() + textDescent() + 5);
     spaceBetweenParam = tbs.charWidth * 7;
     // test droplet parameter entry area
     drplt.reposition();
-    yPos--; // debug stop point //<>//
+    yPos--; // debug stop point
     yPos++;
   }
   
@@ -28,6 +37,7 @@ class effParameterChange {
     float xPosInp;  // x position of input area
     int inputCharCnt;
     float inputWidth;
+    float totalWidth;
 
     param() {
       desc = "";
@@ -36,6 +46,7 @@ class effParameterChange {
       descWidth = 0;
       xPosInp = 0;
       inputWidth = 0;
+      totalWidth = 0;
     }
     
     void doSetup(String inDesc, char inType, int charCnt) {
@@ -44,10 +55,7 @@ class effParameterChange {
       desc = inDesc;
       type = inType;
       inputCharCnt = charCnt;
-      descWidth = textWidth(desc);
-      // exact position computed later
-      xPosInp = descWidth + tbs.charWidth + tbs.charWidth; // computed later
-      inputWidth = tbs.charWidth * charCnt;
+      reSize();
       xPos = 0;  // xPos is computed later
     }
 
@@ -65,22 +73,20 @@ class effParameterChange {
 */
 
     void reSize() {
+      xPos = 0;
       descWidth = textWidth(desc);
-      // exact position computed later
-      xPosInp = descWidth + tbs.charWidth + tbs.charWidth; // computed later
+      // xPosInp is relative to xPos zero, exact position computed later
+      xPosInp = descWidth + tbs.charWidth;
       inputWidth = tbs.charWidth * inputCharCnt;
+      totalWidth = xPosInp + inputWidth;
     }
     
-    float totalWidth() {
-      return xPosInp - xPos + inputWidth; 
-    }
-
     void drawMe() {
       textSize(tbs.txtSize);
       fill(backgroundHighlight);
       rect(xPosInp, yPos, inputWidth, tbs.totalHeight);
       fill(fillNormal);
-      text(desc, xPos, tbs.textYPos);
+      text(desc, xPos, yPos + tbs.textYPos);
      
 /*      
       if(mouseOver(mouseX, mouseY)) {
@@ -131,47 +137,34 @@ class effParameterChange {
       // find a text size that will fit on a line
       float xp;
       int txtSize = tbs.txtSize;
-      float wHeight = tbs.totalHeight; // save current height
       do {
-        textSize(txtSize);
-        tbs.computeSize(wHeight, width); // recompute metrics
+        float hh = tbs.totalHeight;
+        // recompute metrics, changes tbs.totalHeight
+        if(hh < 1) {
+          hh = 40;
+          println("fixed??");
+        }
+        tbs.computeSize(hh);
+        spaceBetweenParam = tbs.charWidth * 3;
         xp = 0;
         for(int i = 0; i < params.length; i++) {
           params[i].reSize();
-          xp += params[i].totalWidth() + spaceBetweenParam;
+          xp += params[i].totalWidth + spaceBetweenParam;
         }
-        xp -= spaceBetweenParam;
+        println("txtSize: " + txtSize);
         txtSize--;
       } while(xp > width && txtSize > 1);
       txtSize++;
-
-/*
-      float xp = 999999;
-      txtSize = globalFontSize + 1;
-      while(xp > width && txtSize > 1) {
-        txtSize--;
-        textSize(txtSize);
-        charWidth = textWidth('0');
-        xp = 0;                    
-        for(int i = 0; i < params.length; i++) { 
-          params[i].xPos = xp;
-          params[i].descWidth = textWidth(params[i].desc);
-          xp += params[i].descWidth + charWidth;
-          params[i].xPosInp = xp;
-          params[i].inputWidth = charWidth * params[i].iWidth;
-          xp += params[i].inputWidth + spaceBetweenParam;
-        }
-      }
-*/      
       xp -= spaceBetweenParam;
       // adjust all params so they are centered
       xp = (width - xp) / 2;
-      for(int i = 0; i < params.length; i++) {
-        params[i].xPos += xp;
+      // set the actual x coordinates
+      for(int i = 0; i < params.length; i++) { //<>//
+        params[i].xPos += xp; //<>//
         params[i].xPosInp += xp;
+        xp += params[i].totalWidth + spaceBetweenParam;
       }
     }
-    
 
     void drawMe() {
       for(int i = 0; i < params.length; i++) {

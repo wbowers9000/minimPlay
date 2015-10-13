@@ -39,7 +39,6 @@ boolean sizeChange = false;
 
 // metrics of different areas
 // width and height are determined by window size
-int areaOffset;
 int XPosWave = 0;
 int YPosWave;
 int XPosMenu = 0;
@@ -93,34 +92,37 @@ void draw()
   if(sizeChange) {
     prevWindowPercentSize = windowPercentSize;
     surface.setSize(displayWidth * windowPercentSize / 100, displayHeight * windowPercentSize / 100);
-    //=============================
-    // this will not work if we to change the Font
-    //textSize(windowPercentSize/2.6);
-    // ============================
-    areaOffset = height / 3;
+    int areaOffset = height / 3;
+    dwHeight = areaOffset;
     YPosWave = 0;
     YPosMenu = YPosWave + areaOffset;
     YPosEffect = YPosMenu + areaOffset;
-    
+    mm.mainYPos = YPosMenu;
+    mm.mainHeight = areaOffset;
     mm.rePositionMenu();
-    
+    ed.mYPos = YPosEffect;
+    ed.mHeight = areaOffset;
     ed.rePositionEffects();
-    // y position of effect parameter change
-    // height is the height of input box (epc.tbs.totalHeight)
-    float textHeight = textAscent() + textDescent();
-    epc.yPos = YPosEffect - textHeight - textHeight;
-    epc.reposition();
-    //epc.drplt.reposition();
+    epc.yPos = 40;
+    epc.mHeight = 40;
+    epc.reposition(); //<>//
   }
+  //println("background"); 
   background(backgroundNormal);  // clear screen
+  //println("menu");
+  mm.drawMenu();
+  //println("waveForm");
   drawWaveForm();
+  //println("effDisp");
   ed.drawEffDisp();
-  //drawMenu();
+  println("effParaChg");
   epc.drplt.drawMe();  // effect parameter change
+  println("after effParaChg");
   stroke(debugColor);
   line(0, YPosEffect, width, YPosEffect);
 }
 
+int dwHeight;
 
 void drawWaveForm()
 {
@@ -131,7 +133,7 @@ void drawWaveForm()
   
   stroke(waveColor);
   strokeWeight(2);
-  int wfvs = areaOffset / 4;  // wave form vertical spacing
+  int wfvs = dwHeight / 4;  // wave form vertical spacing
   int wfc1 = wfvs;  // wave form 1 center
   int wfc2 = wfvs * 3;  // wave form 2 center
   for(int i = 0; i < player.bufferSize() - 1; i++)
@@ -148,19 +150,25 @@ void drawWaveForm()
   if(lineWidth < 1) lineWidth = 1;
   noStroke();
   fill(positionMarkerColor);
-  rect(posx, 0, lineWidth, areaOffset);
+  rect(posx, 0, lineWidth, dwHeight);
 }
 
 void mouseClicked() {
-  int mY = mouseY;
+  int mY = mouseY, mX = mouseX;
+  if(mm.mouseOver(mX, mY, 1)) return;
+  if(ed.mouseOver(mX, mY, 1)) return;
+/*  
   if(mY >= YPosMenu && mY < YPosEffect) 
     doTask(mm.menuItemClicked(mouseX, mouseY));
   else if(mY >= YPosEffect) 
     ed.effectClicked();
+*/    
 }
 
-void mouseDragged() {
-  
+void mouseMoved() {
+  int mY = mouseY, mX = mouseX;
+  if(mm.mouseOver(mX, mY, 0)) return;
+  if(ed.mouseOver(mX, mY, 0)) return;
 }
 
 void keyPressed() {

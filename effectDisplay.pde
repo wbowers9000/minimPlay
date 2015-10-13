@@ -1,4 +1,7 @@
 class effectDisplay {  
+  float mYPos;
+  float mHeight;
+  
   effect efEdit = new effect(10, 8, 180, 180, 1, 0, 300, 0); // inital values for default effect
   final int effectMax = 12;
   effectAreaMetrics eam = new effectAreaMetrics();
@@ -10,6 +13,15 @@ class effectDisplay {
   //initialEffectColor
 //Combineeffect ce = new Combineeffect();
   
+  boolean mouseOver(int mX, int mY, int action) {
+    boolean rtn = mY >= mYPos && mY < (mYPos + mHeight);
+    if(rtn) {
+      if(action == 0) {println("mouse in effectDisplay"); return rtn;}
+      if(action == 1) {/* do something */ return rtn;}
+    }
+    return rtn;
+  }
+    
   //--------------------------------------------------------------------------------------
   // effectAreaMetrics is where all computed measurements for the effect area are stored
   // metrics need only be recomputed once when screen size changes
@@ -40,14 +52,14 @@ class effectDisplay {
     // TODO: update this using textBoxSize object
     void compute(int lines) {
       this.lines = lines;
-      totalLineHeight = areaOffset / lines;
+      totalLineHeight = mHeight / lines;
       lineHeight = totalLineHeight * 0.8;
       // Compute x axis widths.
       textAndBoxSize tbs = new textAndBoxSize();
-      tbs.computeSize(totalLineHeight, '%');
+      tbs.computeSize(totalLineHeight);
       textSize = tbs.txtSize;
       
-      widthLineID = tbs.totalWidth;
+      widthLineID = tbs.oneCharBoxWidth();
       xPosEffect = widthLineID * 1.2;
       widthEffect = width - xPosEffect;
       totalLEDWidth = widthEffect / LEDCnt;
@@ -105,7 +117,7 @@ class effectDisplay {
     menuItemClickable mic;
     effect eff;
     int effType;
-    float xPosEff; //<>//
+    float xPosEff; //<>// //<>//
     float yPosEff;
   
     effSel() {
@@ -129,7 +141,7 @@ class effectDisplay {
     }
     
     void computePlacement(int idx) {
-      yPosEff = YPosEffect + (idx + 2) * eam.totalLineHeight; //<>//
+      yPosEff = YPosEffect + (idx + 2) * eam.totalLineHeight; //<>// //<>//
       mic.setPosition(0, yPosEff);
     }
     
@@ -144,4 +156,51 @@ class effectDisplay {
       displayEffectLine(eff.efAry, eam.xPosEffect, yPosEff);
     }
   }
+}
+
+// menu item class
+class menuItemClickable {
+  char ch;
+  float xP;
+  float yP;
+  private float textXPos;
+  private float textYPos;
+  private float xBorder;  // x axis area around character for select box
+  private float yBorder;  // y axis area around character for select box
+  int txtSz;  // text size for this area
+  float totalWidth;
+  float totalHeight;
+  
+  menuItemClickable(char ch) {
+    this.ch = ch;
+    this.xP = 0;
+    this.yP = 0;
+  }
+  
+   
+  void setPosition(float xPos, float yPos) {
+    xP = xPos;
+    yP = yPos;
+    textXPos = xP + xBorder;
+    textYPos = yP + yBorder + textAscent();
+  }
+
+  void itemDraw() {
+    if(mouseOver(mouseX, mouseY)) {
+      fill(backgroundHighlight);
+      rect(xP, yP, totalWidth, totalHeight);
+      fill(fillHighlight);
+    }
+    else
+      fill(fillNormal);
+    text(ch, textXPos, textYPos);
+  }
+  
+  
+  boolean mouseOver(int mX, int mY) {
+    if(mX >= xP && mX < (xP + totalWidth) && mY >= yP && 
+      mY < (yP + totalHeight)) return true;
+    return false;
+  }
+  
 }
